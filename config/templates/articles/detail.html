@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load make_link %}
+{% load static %}
+
+{% block body %}
+<h1 class="text-center">DETAIL</h1>
+{% include 'articles/_follow.html'%}
+<p>글 번호: {{article.pk}}</p>
+<p>글 제목: {{article.title}} </p>
+<p>글 내용: {{article|hashtag_link|safe}}</p>
+<p>생성 시각: {{article.created_at}}</p>
+<p>수정 시각: {{article.updated_at}}</p>
+<hr>
+<a href="/articles/">[BACK]</a>
+{% if request.user == article.user  %}
+  <a href="{% url 'articles:update' article.pk %}">[EDIT]</a>
+  <form action="{% url 'articles:delete' article.pk %}" method="POST">
+    {% csrf_token %}
+    <input type="submit" value=Delete>
+  </form>
+{% endif %}
+<hr>
+{% if user.is_authenticated %}
+  <form action="{% url 'articles:comments_create' article.pk%}" method="POST">
+    {% csrf_token %}
+    {{ comment_form }}
+    <input type="submit" value="댓글작성">
+  </form>
+{% else %}
+  <a href="{% url 'accounts:login' %}">[댓글 작성하려면 로그인 해주세요]</a>
+{% endif%}
+<hr>
+  <p><b>댓글목록({{ comments|length }}개)</b></p>
+{% for comment in comments %}
+  <li>
+    {{ forloop.revcounter }}번 댓글 : {{ comment.content }}
+    {% if comment.user == request.user %}
+    <form action="{% url 'articles:comments_delete' article.pk comment.pk %}" method="POST" style="display: inline;">
+      {% csrf_token %}
+      <input type="submit" value="삭제하기">
+    </form>
+    {% endif %}
+  </li>
+{% endfor %}
+  </p>
+{% endblock  %}
